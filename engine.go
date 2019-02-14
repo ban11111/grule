@@ -18,7 +18,7 @@ const (
 )
 
 func NewEngine() *RuleEngine {
-	return &RuleEngine{}
+	return new(RuleEngine)
 }
 
 func (engine *RuleEngine) AddJson(ruleJson string) (err error) {
@@ -58,24 +58,27 @@ func (engine *RuleEngine) AddRules(rules []rule) {
 	engine.count += len(rules)
 }
 
-func (engine *RuleEngine) RockNRoll(data map[string]interface{}) (map[string]*bool) {
-	if engine.count <= 0 {
+// one way of running the engine
+func (engine *RuleEngine) RockNRoll(data map[string]interface{}) *RuleEngine {
+	resultEngine := engine.clean()
+	if resultEngine.count <= 0 {
 		panic("empty rules, please configure rules before running")
 	}
-	if engine.respType == respTypeSimple {
-		engine.RespSimple = make(map[string]*bool, engine.count)
+	if resultEngine.respType == respTypeSimple {
+		resultEngine.RespSimple = make(map[string]*bool, resultEngine.count)
 	}
 	for ruleName, value := range data {
-		if engine.r[ruleName] == nil {
+		if resultEngine.r[ruleName] == nil {
 			print(ruleName + " not configured yet, ignore this rule")
 			continue
 		}
-		engine.r[ruleName].Data = value
-		engine.RespSimple[ruleName] = engine.r[ruleName].compare()
+		resultEngine.r[ruleName].Data = value
+		resultEngine.RespSimple[ruleName] = resultEngine.r[ruleName].compare()
 	}
-	return engine.RespSimple
+	return resultEngine
 }
 
+// get named rule's result
 func (engine *RuleEngine) GetResultOf(name string) (result string) {
 	if engine.RespSimple[name] != nil {
 		r := *engine.RespSimple[name]
@@ -85,4 +88,30 @@ func (engine *RuleEngine) GetResultOf(name string) (result string) {
 		return "fail"
 	}
 	return "pending or error"
+}
+
+// full copy of engine
+func (engine *RuleEngine) clone() *RuleEngine {
+	e := &RuleEngine{
+		r:            engine.r.clone(),
+		count:        engine.count,
+		respType:     engine.respType,
+	}
+	for key, value := range engine.RespSimple {
+		e.RespSimple[key] = value
+	}
+	for key, value := range engine.RespComplete {
+		e.RespComplete[key] = value
+	}
+	return e
+}
+
+// a clean copy of engine before running
+func (engine *RuleEngine) clean() *RuleEngine {
+	e := &RuleEngine{
+		r:            engine.r.clone(),
+		count:        engine.count,
+		respType:     engine.respType,
+	}
+	return e
 }

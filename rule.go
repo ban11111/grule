@@ -4,6 +4,14 @@ import "reflect"
 
 type ruler map[string]*rule
 
+func (rs *ruler) clone() map[string]*rule {
+	c := make(map[string]*rule)
+	for key, value := range *rs {
+		c[key] = value
+	}
+	return c
+}
+
 func (rs *ruler) add(r rule) {
 	if len(*rs) <= 0 {
 		*rs = make(map[string]*rule)
@@ -19,6 +27,7 @@ func (rs *ruler) addSub(name, passOrFail string, r rule) {
 	if (*rs)[name] == nil {
 		panic("rule: " + r.Name + " doesn't exist, please add it first.")
 	}
+	r.getCmp()
 	if passOrFail == "pass" {
 		(*rs)[name].Pass = &r
 	} else {
