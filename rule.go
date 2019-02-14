@@ -40,18 +40,20 @@ func (rs *ruler) adds(r []rule) {
 }
 
 type rule struct {
-	Name         string      `json:"name"`
-	ValueConfig  interface{} `json:"value_config"`
-	Comparator   string      `json:"comparator"`
-	DataReceived interface{} `json:"data_received"`
-	Pass         *rule       `json:"pass"`
-	Fail         *rule       `json:"fail"`
-	cmp          int
-	result       *bool
+	Name       string                 `json:"name"`   // rule name
+	Param      string                 `json:"param"`  // param name
+	Params     map[string]interface{} `json:"params"` // all params needed for this rule
+	Value      interface{}            `json:"value"`
+	Comparator string                 `json:"comparator"`
+	Data       interface{}            `json:"data"`
+	Pass       *rule                  `json:"pass"`
+	Fail       *rule                  `json:"fail"`
+	cmp        int
+	result     *bool
 }
 
 func (r *rule) compare() (pass *bool) {
-	pass, _ = compareByTypes(r.ValueConfig, r.DataReceived, r.cmp)
+	pass, _ = compareByTypes(r.Value, r.Data, r.cmp)
 	if pass != nil && *pass && r.Pass != nil {
 		pass = r.Pass.compare()
 	} else if pass != nil && !*pass && r.Fail != nil {

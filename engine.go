@@ -70,7 +70,7 @@ func (engine *RuleEngine) RockNRoll(data map[string]interface{}) (map[string]*bo
 			print(ruleName + " not configured yet, ignore this rule")
 			continue
 		}
-		engine.r[ruleName].DataReceived = value
+		engine.r[ruleName].Data = value
 		engine.RespSimple[ruleName] = engine.r[ruleName].compare()
 	}
 	return engine.RespSimple
