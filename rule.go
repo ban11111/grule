@@ -64,13 +64,13 @@ func (rs *ruler) adds(r []rule) {
 type rule struct {
 	Name       string                 `json:"name"`   // rule name
 	Param      string                 `json:"param"`  // param name
-	Value      interface{}            `json:"value"`
+	Value      interface{}            `json:"value"`  // Value 和 Comparator 共同组成 规则
 	Comparator string                 `json:"cmp"`
-	Data       interface{}            `json:"data"`
-	Pass       *rule                  `json:"pass"`
-	Fail       *rule                  `json:"fail"`
-	cmp        int
-	result     *bool
+	Data       interface{}            `json:"data"`   // 这个无用
+	Pass       *rule                  `json:"pass"`   // 通过后下一个规则
+	Fail       *rule                  `json:"fail"`   // 失败后下一个规则
+	cmp        int                                    // Comparator 转换成 下面定义的 const
+	result     *bool                                  // 当前规则的结果
 }
 
 func (r *rule) compare(data map[string]interface{}) (pass *bool) {

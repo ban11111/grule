@@ -8,9 +8,9 @@ type RuleEngine struct {
 	r            ruler
 	count        int
 	respType     int // default RespSimple
-	data         map[string]interface{}
-	RespSimple   map[string]*bool
-	RespComplete map[string]interface{}
+	data         map[string]interface{}  // 全部输入参数
+	RespSimple   map[string]*bool // 简版结果
+	RespComplete map[string]interface{} // 祥版结果
 }
 
 const (
