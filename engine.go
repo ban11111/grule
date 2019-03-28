@@ -7,14 +7,24 @@ import (
 type RuleEngine struct {
 	r            ruler
 	count        int
-	respType     int // default RespSimple
-	data         map[string]interface{}  // 全部输入参数
-	RespSimple   map[string]*bool // 简版结果
+	respType     int                    // default RespSimple
+	data         map[string]interface{} // 全部输入参数
+	RespSimple   map[string]*bool       // 简版结果
 	RespComplete map[string]interface{} // 祥版结果
 }
 
+// config of rule
+type RuleConfig struct {
+	// rule name
+	Name       string `json:"name"`
+	//
+	Param      string `json:"param"`
+	Value      string `json:"value"`
+	Comparator string `json:"cmp"`
+}
+
 const (
-	respTypeSimple   = iota
+	respTypeSimple = iota
 	respTypeComplete
 )
 
@@ -126,9 +136,9 @@ func (engine *RuleEngine) GetResultOf(name string) (result string) {
 // full copy of engine
 func (engine *RuleEngine) clone() *RuleEngine {
 	e := &RuleEngine{
-		r:            engine.r.clone(),
-		count:        engine.count,
-		respType:     engine.respType,
+		r:        engine.r.clone(),
+		count:    engine.count,
+		respType: engine.respType,
 	}
 	for key, value := range engine.RespSimple {
 		e.RespSimple[key] = value
@@ -142,9 +152,9 @@ func (engine *RuleEngine) clone() *RuleEngine {
 // a clean copy of engine before running
 func (engine *RuleEngine) clean() *RuleEngine {
 	e := &RuleEngine{
-		r:            engine.r.clone(),
-		count:        engine.count,
-		respType:     engine.respType,
+		r:        engine.r.clone(),
+		count:    engine.count,
+		respType: engine.respType,
 	}
 	return e
 }
