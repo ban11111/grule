@@ -1,9 +1,9 @@
 package grule
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewEngine(t *testing.T) {
@@ -16,8 +16,17 @@ func TestNewEngine(t *testing.T) {
 	result = newEngine.RockNRoll([]string{"new1"}, map[string]interface{}{"age": 51, "age2": 52})
 	fmt.Println(result.GetResultOf("new1"))
 
-	//newEngine.AddPassJSON("p", `{"name": "p.p", "param":"age", "value":"100", "cmp":"eq"}`)
-	//result = newEngine.RockNRoll([]string{"new1"}, map[string]interface{}{"age": 51})
-	//fmt.Println(result.RespSimple["new1"])
-	//fmt.Println(result.GetResultOf("new1"))
+	err := newEngine.AddRule(&RuleConfig{
+		// rule id
+		Name: "rule1",
+		// rule param
+		Param: "address",
+		// value of param
+		Value: "abc",
+		// comparator
+		Comparator: "eq",
+	})
+	assert.NoError(t, err)
+	result = newEngine.RockNRoll([]string{"rule1"}, map[string]interface{}{"address": "abc"})
+	assert.Equal(t, "pass", result.GetResultOf("rule1"))
 }

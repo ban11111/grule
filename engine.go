@@ -15,11 +15,13 @@ type RuleEngine struct {
 
 // config of rule
 type RuleConfig struct {
-	// rule name
-	Name       string `json:"name"`
-	//
-	Param      string `json:"param"`
-	Value      string `json:"value"`
+	// rule id
+	Name string `json:"name"`
+	// rule param
+	Param string `json:"param"`
+	// value of param
+	Value interface{} `json:"value"`
+	// comparator
 	Comparator string `json:"cmp"`
 }
 
@@ -32,6 +34,17 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func NewEngine() *RuleEngine {
 	return new(RuleEngine)
+}
+
+func (engine *RuleEngine) AddRule(rc *RuleConfig) (err error) {
+	engine.r.add(&rule{
+		Name:       rc.Name,
+		Param:      rc.Param,
+		Value:      rc.Value,
+		Comparator: rc.Comparator,
+	})
+	engine.count ++
+	return
 }
 
 func (engine *RuleEngine) AddJSON(ruleJson string) (err error) {
