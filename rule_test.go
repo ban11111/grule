@@ -2,7 +2,6 @@ package grule
 
 import (
 	"testing"
-	"gcommons/encoding/json"
 	"github.com/stretchr/testify/assert"
 	"fmt"
 	"time"
@@ -11,7 +10,7 @@ import (
 func TestSomething(t *testing.T) {
 	str := `{"name":"ban11111", "fail":{"name":"ban2222", "pass":{"name":"ban33333"}}}`
 	var r rule
-	assert.NoError(t, json.ParseJson(str, &r))
+	assert.NoError(t, json.UnmarshalFromString(str, &r))
 	fmt.Println(r.Name, r.Fail, r.Fail.Pass)
 }
 

@@ -8,13 +8,16 @@ import (
 
 func TestNewEngine(t *testing.T) {
 	newEngine := NewEngine()
-	assert.NoError(t, newEngine.AddJson(`{"name":"new1", "value":51, "comparator":"eq"}`))
-	result := newEngine.RockNRoll(map[string]interface{}{"new1": 51})
-	fmt.Println(result.RespSimple["new1"])
+	assert.NoError(t, newEngine.AddJSON(`{"name":"new1", "param":"age", "value":51, "cmp":"eq"}`))
+	result := newEngine.RockNRoll([]string{"new1"}, map[string]interface{}{"age": 51})
+	fmt.Println(result.GetResultOf("new1"))
 
+	newEngine.AddPassJSON("new1", `{"param":"age2", "value":50, "cmp":"eq"}`)
+	result = newEngine.RockNRoll([]string{"new1"}, map[string]interface{}{"age": 51, "age2": 52})
 	fmt.Println(result.GetResultOf("new1"))
-	newEngine.AddPassJson("new1", `{"name": "new1_pass", "value":"100", "comparator":"eq"}`)
-	result = newEngine.RockNRoll(map[string]interface{}{"new1": 51})
-	fmt.Println(result.RespSimple["new1"])
-	fmt.Println(result.GetResultOf("new1"))
+
+	//newEngine.AddPassJSON("p", `{"name": "p.p", "param":"age", "value":"100", "cmp":"eq"}`)
+	//result = newEngine.RockNRoll([]string{"new1"}, map[string]interface{}{"age": 51})
+	//fmt.Println(result.RespSimple["new1"])
+	//fmt.Println(result.GetResultOf("new1"))
 }

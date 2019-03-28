@@ -7,7 +7,8 @@ import (
 type RuleEngine struct {
 	r            ruler
 	count        int
-	respType     int // 默认返回简单版本
+	respType     int // default RespSimple
+	data         map[string]interface{}
 	RespSimple   map[string]*bool
 	RespComplete map[string]interface{}
 }
@@ -17,63 +18,95 @@ const (
 	respTypeComplete
 )
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 func NewEngine() *RuleEngine {
 	return new(RuleEngine)
 }
 
-func (engine *RuleEngine) AddJson(ruleJson string) (err error) {
+func (engine *RuleEngine) AddJSON(ruleJson string) (err error) {
 	var rule rule
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	if err = json.UnmarshalFromString(ruleJson, &rule); err != nil {
 		return
 	}
-	engine.r.add(rule)
+	engine.r.add(&rule)
 	engine.count ++
 	return
 }
 
-func (engine *RuleEngine) AddPassJson(name, ruleJson string) (err error) {
+func (engine *RuleEngine) AddPassJSON(name, ruleJson string) (err error) {
 	var rule rule
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	if err = json.UnmarshalFromString(ruleJson, &rule); err != nil {
 		return
 	}
-	engine.r.addSub(name, "pass", rule)
+	//paths := strings.Split(name, ".")
+	// todo, 优化
+	engine.r.addSub(name, "pass", &rule)
 	return
 }
 
-func (engine *RuleEngine) AddFailJson(name, ruleJson string) (err error) {
+func (engine *RuleEngine) AddFailJSON(name, ruleJson string) (err error) {
 	var rule rule
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	if err = json.UnmarshalFromString(ruleJson, &rule); err != nil {
 		return
 	}
-	engine.r.addSub(name, "fail", rule)
+	engine.r.addSub(name, "fail", &rule)
+	return
+}
+
+func (engine *RuleEngine) AddJSONs(rulesJson string) (err error) {
+	var rules []rule
+	if err = json.UnmarshalFromString(rulesJson, &rules); err != nil {
+		return
+	}
+	engine.r.adds(rules)
+	engine.count += len(rules)
 	return
 }
 
 func (engine *RuleEngine) AddRules(rules []rule) {
-	// todo, 转换成rules
 	engine.r.adds(rules)
 	engine.count += len(rules)
 }
 
 // one way of running the engine
-func (engine *RuleEngine) RockNRoll(data map[string]interface{}) *RuleEngine {
+func (engine *RuleEngine) RockNRoll(rulesToRun []string, data map[string]interface{}, doParallel ...bool) *RuleEngine {
 	resultEngine := engine.clean()
+	resultEngine.data = data
 	if resultEngine.count <= 0 {
 		panic("empty rules, please configure rules before running")
 	}
 	if resultEngine.respType == respTypeSimple {
 		resultEngine.RespSimple = make(map[string]*bool, resultEngine.count)
 	}
-	for ruleName, value := range data {
+	//if len(doParallel)>0 && doParallel[0] {
+	//	finish := make(chan bool)
+	//	for ruleName, value := range data {
+	//		if resultEngine.r[ruleName] == nil {
+	//			print(ruleName + " not configured yet, ignore this rule")
+	//			continue
+	//		}
+	//		go func(f chan bool) {
+	//			resultEngine.r[ruleName].Data = value
+	//			resultEngine.RespSimple[ruleName] = resultEngine.r[ruleName].compare()
+	//			finish <- true
+	//		}(finish)
+	//	}
+	//	for {
+	//		if _, ok := <- finish; !ok {
+	//			close(finish)
+	//			break
+	//		}
+	//	}
+	//	return resultEngine
+	//}
+	for _, ruleName := range rulesToRun {
 		if resultEngine.r[ruleName] == nil {
 			print(ruleName + " not configured yet, ignore this rule")
 			continue
 		}
-		resultEngine.r[ruleName].Data = value
-		resultEngine.RespSimple[ruleName] = resultEngine.r[ruleName].compare()
+		resultEngine.RespSimple[ruleName] = resultEngine.doCompare(ruleName)
 	}
 	return resultEngine
 }
@@ -114,4 +147,15 @@ func (engine *RuleEngine) clean() *RuleEngine {
 		respType:     engine.respType,
 	}
 	return e
+}
+
+func (engine *RuleEngine) loadData(dataStr string) (err error) {
+	if err = json.UnmarshalFromString(dataStr, &engine.data); err != nil {
+		return
+	}
+	return
+}
+
+func (engine *RuleEngine) doCompare(ruleName string) *bool {
+	return engine.r[ruleName].compare(engine.data)
 }

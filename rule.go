@@ -1,6 +1,8 @@
 package grule
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type ruler map[string]*rule
 
@@ -12,7 +14,18 @@ func (rs *ruler) clone() map[string]*rule {
 	return c
 }
 
-func (rs *ruler) add(r rule) {
+// 遍历一个规则
+func enumARule(r *rule, f func()) {
+	f()
+	if r.Pass != nil {
+		enumARule(r.Pass, f)
+	}
+	if r.Fail != nil {
+		enumARule(r.Fail, f)
+	}
+}
+
+func (rs *ruler) add(r *rule) {
 	if len(*rs) <= 0 {
 		*rs = make(map[string]*rule)
 	}
@@ -20,18 +33,18 @@ func (rs *ruler) add(r rule) {
 		panic("rule: " + r.Name + " already exist, please use update instead.")
 	}
 	r.getCmp()
-	(*rs)[r.Name] = &r
+	(*rs)[r.Name] = r
 }
 
-func (rs *ruler) addSub(name, passOrFail string, r rule) {
+func (rs *ruler) addSub(name, passOrFail string, r *rule) {
 	if (*rs)[name] == nil {
 		panic("rule: " + r.Name + " doesn't exist, please add it first.")
 	}
 	r.getCmp()
 	if passOrFail == "pass" {
-		(*rs)[name].Pass = &r
+		(*rs)[name].Pass = r
 	} else {
-		(*rs)[name].Fail = &r
+		(*rs)[name].Fail = r
 	}
 }
 
@@ -51,9 +64,8 @@ func (rs *ruler) adds(r []rule) {
 type rule struct {
 	Name       string                 `json:"name"`   // rule name
 	Param      string                 `json:"param"`  // param name
-	Params     map[string]interface{} `json:"params"` // all params needed for this rule
 	Value      interface{}            `json:"value"`
-	Comparator string                 `json:"comparator"`
+	Comparator string                 `json:"cmp"`
 	Data       interface{}            `json:"data"`
 	Pass       *rule                  `json:"pass"`
 	Fail       *rule                  `json:"fail"`
@@ -61,12 +73,16 @@ type rule struct {
 	result     *bool
 }
 
-func (r *rule) compare() (pass *bool) {
-	pass, _ = compareByTypes(r.Value, r.Data, r.cmp)
+func (r *rule) compare(data map[string]interface{}) (pass *bool) {
+	if _, ok := data[r.Param]; !ok {
+		// todo 优化
+		panic("参数不够")
+	}
+	pass, _ = compareByTypes(r.Value, data[r.Param], r.cmp)
 	if pass != nil && *pass && r.Pass != nil {
-		pass = r.Pass.compare()
+		pass = r.Pass.compare(data)
 	} else if pass != nil && !*pass && r.Fail != nil {
-		pass = r.Fail.compare()
+		pass = r.Fail.compare(data)
 	}
 	r.result = pass
 	return pass
@@ -105,6 +121,8 @@ func compareByTypes(ruleData, cmpData interface{}, cmp int) (resulted *bool, err
 		result = !ObjectsAreEqualValues(ruleData, cmpData)
 		resulted = &result
 	case gt:
+	default:
+		return nil, nil
 
 	}
 	return
