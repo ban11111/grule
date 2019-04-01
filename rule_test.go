@@ -7,6 +7,32 @@ import (
 	"time"
 )
 
+func TestCompareByLTE(t *testing.T) {
+	testSuits := []struct {
+		ruleData, cmpData interface{}
+		result            bool
+	}{
+		{
+			ruleData: 1,
+			cmpData:  1,
+			result:   true,
+		},
+		{
+			ruleData: uint(1),
+			cmpData:  uint(2),
+			result:   false,
+		},
+		{
+			ruleData: float64(2),
+			cmpData:  float64(1),
+			result:   true,
+		},
+	}
+	for _, ts := range testSuits {
+		assert.Equal(t, ts.result, compareLTE(ts.ruleData, ts.cmpData))
+	}
+}
+
 func TestCompareByGTE(t *testing.T) {
 	testSuits := []struct {
 		ruleData, cmpData interface{}
@@ -14,7 +40,7 @@ func TestCompareByGTE(t *testing.T) {
 	}{
 		{
 			ruleData: 1,
-			cmpData:  2,
+			cmpData:  1,
 			result:   true,
 		},
 		{

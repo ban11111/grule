@@ -111,7 +111,7 @@ const (
 )
 
 func (r *rule) getCmp() {
-	var x = map[string]int{"eq": eq}
+	var x = map[string]int{"eq": eq, "neq": neq, "gte": gte}
 	r.cmp = x[r.Comparator]
 }
 
@@ -129,9 +129,31 @@ func compareByTypes(ruleData, cmpData interface{}, cmp int) (resulted *bool, err
 	case gte:
 		result = compareGTE(ruleData, cmpData)
 		resulted = &result
+	case lte:
+		result = compareLTE(ruleData, cmpData)
+		resulted = &result
 	default:
 		return nil, nil
 
+	}
+	return
+}
+
+func compareLTE(ruleData, cmpData interface{}) (resulted bool) {
+	ruleDataV := reflect.ValueOf(ruleData)
+	cmpDataV := reflect.ValueOf(cmpData)
+	if ruleDataV.Type() != cmpDataV.Type() {
+		panic("data type is not equal")
+	}
+	switch ruleDataV.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		resulted = cmpDataV.Int() <= ruleDataV.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		resulted = cmpDataV.Uint() <= ruleDataV.Uint()
+	case reflect.Float32, reflect.Float64:
+		resulted = cmpDataV.Float() <= ruleDataV.Float()
+	default:
+		panic("data type is not a number")
 	}
 	return
 }
