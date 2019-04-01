@@ -111,7 +111,7 @@ const (
 )
 
 func (r *rule) getCmp() {
-	var x = map[string]int{"eq": eq, "neq": neq, "gte": gte}
+	var x = map[string]int{"eq": eq, "neq": neq, "gte": gte, "lte": lte}
 	r.cmp = x[r.Comparator]
 }
 
