@@ -29,4 +29,24 @@ func TestNewEngine(t *testing.T) {
 	assert.NoError(t, err)
 	result = newEngine.RockNRoll([]string{"rule1"}, map[string]interface{}{"address": "abc"})
 	assert.Equal(t, "pass", result.GetResultOf("rule1"))
+	newEngine.AddPassRule("rule1", &RuleConfig{
+		// rule param
+		Param: "address2",
+		// value of param
+		Value: "aaa",
+		// comparator
+		Comparator: "eq",
+	})
+	result = newEngine.RockNRoll([]string{"rule1"}, map[string]interface{}{"address": "abc", "address2": "aaa"})
+	assert.Equal(t, "pass", result.GetResultOf("rule1"))
+	newEngine.AddFailRule("rule1", &RuleConfig{
+		// rule param
+		Param: "address2",
+		// value of param
+		Value: "aaa",
+		// comparator
+		Comparator: "eq",
+	})
+	result = newEngine.RockNRoll([]string{"rule1"}, map[string]interface{}{"address": "abc1", "address2": "aaa"})
+	assert.Equal(t, "pass", result.GetResultOf("rule1"))
 }

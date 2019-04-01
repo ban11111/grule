@@ -47,6 +47,24 @@ func (engine *RuleEngine) AddRule(rc *RuleConfig) (err error) {
 	return
 }
 
+func (engine *RuleEngine) AddPassRule(name string, rc *RuleConfig) (err error) {
+	engine.r.addSub(name, "pass", &rule{
+		Param:      rc.Param,
+		Value:      rc.Value,
+		Comparator: rc.Comparator,
+	})
+	return
+}
+
+func (engine *RuleEngine) AddFailRule(name string, rc *RuleConfig) (err error) {
+	engine.r.addSub(name, "fail", &rule{
+		Param:      rc.Param,
+		Value:      rc.Value,
+		Comparator: rc.Comparator,
+	})
+	return
+}
+
 func (engine *RuleEngine) AddJSON(ruleJson string) (err error) {
 	var rule rule
 	if err = json.UnmarshalFromString(ruleJson, &rule); err != nil {
