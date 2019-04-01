@@ -62,15 +62,15 @@ func (rs *ruler) adds(r []rule) {
 }
 
 type rule struct {
-	Name       string                 `json:"name"`   // rule name
-	Param      string                 `json:"param"`  // param name
-	Value      interface{}            `json:"value"`  // Value 和 Comparator 共同组成 规则
-	Comparator string                 `json:"cmp"`
-	Data       interface{}            `json:"data"`   // 这个无用
-	Pass       *rule                  `json:"pass"`   // 通过后下一个规则
-	Fail       *rule                  `json:"fail"`   // 失败后下一个规则
-	cmp        int                                    // Comparator 转换成 下面定义的 const
-	result     *bool                                  // 当前规则的结果
+	Name       string      `json:"name"`  // rule name
+	Param      string      `json:"param"` // param name
+	Value      interface{} `json:"value"` // Value 和 Comparator 共同组成 规则
+	Comparator string      `json:"cmp"`
+	Data       interface{} `json:"data"` // 这个无用
+	Pass       *rule       `json:"pass"` // 通过后下一个规则
+	Fail       *rule       `json:"fail"` // 失败后下一个规则
+	cmp        int                       // Comparator 转换成 下面定义的 const
+	result     *bool                     // 当前规则的结果
 }
 
 func (r *rule) compare(data map[string]interface{}) (pass *bool) {
@@ -89,12 +89,18 @@ func (r *rule) compare(data map[string]interface{}) (pass *bool) {
 }
 
 const (
-	empty     = iota
+	empty = iota
+	// ==
 	eq
+	// !=
 	neq
+	// >
 	gt
+	// >=
 	gte
+	// <
 	lt
+	// <=
 	lte
 	exists
 	nexists
@@ -120,10 +126,31 @@ func compareByTypes(ruleData, cmpData interface{}, cmp int) (resulted *bool, err
 	case neq:
 		result = !ObjectsAreEqualValues(ruleData, cmpData)
 		resulted = &result
-	case gt:
+	case gte:
+		result = compareGTE(ruleData, cmpData)
+		resulted = &result
 	default:
 		return nil, nil
 
+	}
+	return
+}
+
+func compareGTE(ruleData, cmpData interface{}) (resulted bool) {
+	ruleDataV := reflect.ValueOf(ruleData)
+	cmpDataV := reflect.ValueOf(cmpData)
+	if ruleDataV.Type() != cmpDataV.Type() {
+		panic("data type is not equal")
+	}
+	switch ruleDataV.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		resulted = cmpDataV.Int() >= ruleDataV.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		resulted = cmpDataV.Uint() >= ruleDataV.Uint()
+	case reflect.Float32, reflect.Float64:
+		resulted = cmpDataV.Float() >= ruleDataV.Float()
+	default:
+		panic("data type is not a number")
 	}
 	return
 }

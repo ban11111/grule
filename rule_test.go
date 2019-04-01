@@ -1,11 +1,37 @@
 package grule
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 	"time"
 )
+
+func TestCompareByGTE(t *testing.T) {
+	testSuits := []struct {
+		ruleData, cmpData interface{}
+		result            bool
+	}{
+		{
+			ruleData: 1,
+			cmpData:  2,
+			result:   true,
+		},
+		{
+			ruleData: uint(2),
+			cmpData:  uint(1),
+			result:   false,
+		},
+		{
+			ruleData: float64(2),
+			cmpData:  float64(1),
+			result:   false,
+		},
+	}
+	for _, ts := range testSuits {
+		assert.Equal(t, ts.result, compareGTE(ts.ruleData, ts.cmpData))
+	}
+}
 
 func TestSomething(t *testing.T) {
 	str := `{"name":"ban11111", "fail":{"name":"ban2222", "pass":{"name":"ban33333"}}}`
@@ -27,7 +53,7 @@ func TestTestingComparators(t *testing.T) {
 	assert.Empty(t, nil)
 	// 范围类
 	assert.InDelta(t, 6, 7, 1)
-	assert.WithinDuration(t, time.Now().Add(time.Second), time.Now().AddDate(0,0,1), time.Hour*24)
+	assert.WithinDuration(t, time.Now().Add(time.Second), time.Now().AddDate(0, 0, 1), time.Hour*24)
 	//assert.InEpsilon()
 	//// http 类
 	//r, err := resty.R().Get("www.baidu.com")
@@ -36,5 +62,5 @@ func TestTestingComparators(t *testing.T) {
 	assert.JSONEq(t, `[{"1":1, "1":1}]`, `[{"1":1}]`)
 	assert.Nil(t, nil)
 	assert.Regexp(t, `$`, "sdf$fdf")
-	assert.Panics(t, func() {panic("111")})
+	assert.Panics(t, func() { panic("111") })
 }
